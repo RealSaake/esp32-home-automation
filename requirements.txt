@@ -1,0 +1,30 @@
+# ESP32 Home Automation - Python Dependencies
+# Install with: pip install -r requirements.txt
+
+# Voice Control Dependencies
+speechrecognition==3.10.0
+pyttsx3==2.90
+pyaudio==0.2.11
+
+# HTTP Requests
+requests==2.31.0
+
+# JSON Handling
+json5==0.9.14
+
+# Testing Framework
+pytest==7.4.3
+pytest-asyncio==0.21.1
+
+# Development Tools
+black==23.9.1
+flake8==6.1.0
+mypy==1.6.1
+
+# Optional: Advanced Features
+# numpy==1.24.3          # For advanced sensor data processing
+# scipy==1.11.3          # For signal processing
+# matplotlib==3.7.2      # For data visualization
+# pandas==2.1.1          # For data analysis
+# opencv-python==4.8.1.78 # For computer vision (if using cameras)
+# tensorflow==2.13.0     # For machine learning (if using AI features)

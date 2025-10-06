@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>ESP32 Home Control - Mobile</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#667eea">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Home Control">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+            overflow-x: hidden;
+        }
+        
+        .mobile-container {
+            max-width: 100%;
+            margin: 0 auto;
+            padding: 10px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 15px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            color: white;
+            font-size: 1.8em;
+            margin-bottom: 5px;
+        }
+        
+        .connection-status {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            color: white;
+            font-size: 0.9em;
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #2ecc71;
+        }
+        
+        .status-dot.disconnected {
+            background: #e74c3c;
+        }
+        
+        .quick-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .quick-btn {
+            background: rgba(255, 255, 255, 0.95);
+            border: none;
+            padding: 20px;
+            border-radius: 15px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .quick-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .quick-btn.success {
+            background: #2ecc71;
+            color: white;
+        }
+        
+        .quick-btn.danger {
+            background: #e74c3c;
+            color: white;
+        }
+        
+        .quick-btn-icon {
+            font-size: 1.5em;
+        }
+        
+        .devices-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        .devices-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        
+        .device-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+        
+        .device-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        
+        .device-card:active {
+            transform: scale(0.98);
+        }
+        
+        .device-card.active {
+            border-color: #2ecc71;
+            background: #f8fff8;
+        }
+        
+        .device-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .device-name {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .device-status {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 600;
+        }
+        
+        .device-status.on {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .device-status.off {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .device-control {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .device-toggle {
+            position: relative;
+            width: 60px;
+            height: 30px;
+            background: #ccc;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .device-toggle.active {
+            background: #2ecc71;
+        }
+        
+        .device-toggle::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 24px;
+            height: 24px;
+            background: white;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .device-toggle.active::after {
+            transform: translateX(30px);
+        }
+        
+        .device-info {
+            flex: 1;
+            font-size: 0.9em;
+            color: #666;
+        }
+        
+        .sensors-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        .sensors-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        
+        .sensor-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .sensor-card {
+            background: white;
+            border-radius: 15px;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .sensor-icon {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+        
+        .sensor-value {
+            font-size: 1.2em;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .sensor-label {
+            font-size: 0.9em;
+            color: #666;
+        }
+        
+        .footer {
+            text-align: center;
+            color: white;
+            margin-top: auto;
+            padding: 20px;
+            opacity: 0.8;
+        }
+        
+        .loading {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        
+        .loading.show {
+            display: flex;
+        }
+        
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .toast {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            background: #333;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            z-index: 1001;
+            transform: translateY(-100px);
+            transition: transform 0.3s ease;
+        }
+        
+        .toast.show {
+            transform: translateY(0);
+        }
+        
+        .toast.success {
+            background: #2ecc71;
+        }
+        
+        .toast.error {
+            background: #e74c3c;
+        }
+        
+        /* iOS specific styles */
+        @supports (-webkit-touch-callout: none) {
+            .mobile-container {
+                padding-top: env(safe-area-inset-top);
+                padding-bottom: env(safe-area-inset-bottom);
+            }
+        }
+        
+        /* Android specific styles */
+        @media screen and (max-width: 768px) {
+            .device-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .sensor-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        
+        /* Very small screens */
+        @media screen and (max-width: 480px) {
+            .quick-actions {
+                grid-template-columns: 1fr;
+            }
+            
+            .sensor-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="mobile-container">
+        <header class="header">
+            <h1>🏠 Home Control</h1>
+            <div class="connection-status">
+                <div class="status-dot" id="connection-dot"></div>
+                <span id="connection-text">Connected</span>
+            </div>
+        </header>
+        
+        <div class="quick-actions">
+            <button class="quick-btn success" id="all-on">
+                <span class="quick-btn-icon">🔌</span>
+                <span>All ON</span>
+            </button>
+            <button class="quick-btn danger" id="all-off">
+                <span class="quick-btn-icon">🔌</span>
+                <span>All OFF</span>
+            </button>
+        </div>
+        
+        <div class="devices-section">
+            <h2 class="devices-title">Devices</h2>
+            <div class="device-grid">
+                <div class="device-card" data-relay="1">
+                    <div class="device-header">
+                        <div class="device-name">Living Room Light</div>
+                        <div class="device-status off" id="status1">OFF</div>
+                    </div>
+                    <div class="device-control">
+                        <div class="device-toggle" id="toggle1"></div>
+                        <div class="device-info">Main living room lighting</div>
+                    </div>
+                </div>
+                
+                <div class="device-card" data-relay="2">
+                    <div class="device-header">
+                        <div class="device-name">Kitchen Light</div>
+                        <div class="device-status off" id="status2">OFF</div>
+                    </div>
+                    <div class="device-control">
+                        <div class="device-toggle" id="toggle2"></div>
+                        <div class="device-info">Kitchen area lighting</div>
+                    </div>
+                </div>
+                
+                <div class="device-card" data-relay="3">
+                    <div class="device-header">
+                        <div class="device-name">Bedroom Light</div>
+                        <div class="device-status off" id="status3">OFF</div>
+                    </div>
+                    <div class="device-control">
+                        <div class="device-toggle" id="toggle3"></div>
+                        <div class="device-info">Bedroom area lighting</div>
+                    </div>
+                </div>
+                
+                <div class="device-card" data-relay="4">
+                    <div class="device-header">
+                        <div class="device-name">Garage Door</div>
+                        <div class="device-status off" id="status4">OFF</div>
+                    </div>
+                    <div class="device-control">
+                        <div class="device-toggle" id="toggle4"></div>
+                        <div class="device-info">Garage door control</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="sensors-section">
+            <h2 class="sensors-title">Sensors</h2>
+            <div class="sensor-grid">
+                <div class="sensor-card">
+                    <div class="sensor-icon">🌡️</div>
+                    <div class="sensor-value" id="temperature">--°C</div>
+                    <div class="sensor-label">Temperature</div>
+                </div>
+                
+                <div class="sensor-card">
+                    <div class="sensor-icon">💧</div>
+                    <div class="sensor-value" id="humidity">--%</div>
+                    <div class="sensor-label">Humidity</div>
+                </div>
+                
+                <div class="sensor-card">
+                    <div class="sensor-icon">💡</div>
+                    <div class="sensor-value" id="light">--%</div>
+                    <div class="sensor-label">Light</div>
+                </div>
+                
+                <div class="sensor-card">
+                    <div class="sensor-icon">🏃</div>
+                    <div class="sensor-value" id="motion">No</div>
+                    <div class="sensor-label">Motion</div>
+                </div>
+            </div>
+        </div>
+        
+        <footer class="footer">
+            <p>ESP32 Home Automation</p>
+            <p>Mobile Control Interface</p>
+        </footer>
+    </div>
+    
+    <div class="loading" id="loading">
+        <div class="loading-spinner"></div>
+        <p style="color: white;">Connecting...</p>
+    </div>
+    
+    <div class="toast" id="toast"></div>
+    
+    <script>
+        class MobileHomeControl {
+            constructor() {
+                this.baseUrl = window.location.origin;
+                this.isConnected = false;
+                this.updateInterval = null;
+                this.init();
+            }
+            
+            init() {
+                this.setupEventListeners();
+                this.startUpdates();
+                this.loadInitialState();
+                this.setupPWA();
+            }
+            
+            setupEventListeners() {
+                // Quick action buttons
+                document.getElementById('all-on').addEventListener('click', () => this.allRelays(true));
+                document.getElementById('all-off').addEventListener('click', () => this.allRelays(false));
+                
+                // Device toggles
+                for (let i = 1; i <= 4; i++) {
+                    const toggle = document.getElementById(`toggle${i}`);
+                    toggle.addEventListener('click', () => this.toggleRelay(i));
+                }
+                
+                // Touch feedback
+                document.querySelectorAll('.device-card, .quick-btn').forEach(element => {
+                    element.addEventListener('touchstart', (e) => {
+                        element.style.transform = 'scale(0.95)';
+                    });
+                    
+                    element.addEventListener('touchend', (e) => {
+                        element.style.transform = 'scale(1)';
+                    });
+                });
+            }
+            
+            setupPWA() {
+                // Register service worker
+                if ('serviceWorker' in navigator) {
+                    navigator.serviceWorker.register('/sw.js')
+                        .then(registration => console.log('SW registered'))
+                        .catch(error => console.log('SW registration failed'));
+                }
+                
+                // Prevent zoom on double tap
+                let lastTouchEnd = 0;
+                document.addEventListener('touchend', (e) => {
+                    const now = (new Date()).getTime();
+                    if (now - lastTouchEnd <= 300) {
+                        e.preventDefault();
+                    }
+                    lastTouchEnd = now;
+                }, false);
+            }
+            
+            async toggleRelay(relayNumber) {
+                const toggle = document.getElementById(`toggle${relayNumber}`);
+                const currentState = toggle.classList.contains('active');
+                const newState = !currentState;
+                
+                this.showLoading();
+                
+                try {
+                    const response = await fetch(`/api/relay?relay=${relayNumber}&state=${newState}`, {
+                        method: 'GET',
+                        timeout: 5000
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.success) {
+                            this.updateRelayStatus(relayNumber, newState);
+                            this.showToast(`Device ${relayNumber} ${newState ? 'ON' : 'OFF'}`, 'success');
+                        } else {
+                            throw new Error(data.error || 'Control failed');
+                        }
+                    } else {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+                } catch (error) {
+                    this.showToast(`Failed to control device ${relayNumber}`, 'error');
+                    console.error('Error controlling relay:', error);
+                } finally {
+                    this.hideLoading();
+                }
+            }
+            
+            async allRelays(state) {
+                this.showLoading();
+                
+                try {
+                    const response = await fetch(`/api/all?state=${state}`, {
+                        method: 'GET',
+                        timeout: 10000
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.success) {
+                            for (let i = 1; i <= 4; i++) {
+                                this.updateRelayStatus(i, state);
+                            }
+                            this.showToast(`All devices ${state ? 'ON' : 'OFF'}`, 'success');
+                        } else {
+                            throw new Error(data.error || 'Bulk control failed');
+                        }
+                    } else {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+                } catch (error) {
+                    this.showToast(`Failed to control all devices`, 'error');
+                    console.error('Error controlling all relays:', error);
+                } finally {
+                    this.hideLoading();
+                }
+            }
+            
+            updateRelayStatus(relayNumber, state) {
+                const toggle = document.getElementById(`toggle${relayNumber}`);
+                const status = document.getElementById(`status${relayNumber}`);
+                const card = document.querySelector(`[data-relay="${relayNumber}"]`);
+                
+                if (state) {
+                    toggle.classList.add('active');
+                    status.textContent = 'ON';
+                    status.className = 'device-status on';
+                    card.classList.add('active');
+                } else {
+                    toggle.classList.remove('active');
+                    status.textContent = 'OFF';
+                    status.className = 'device-status off';
+                    card.classList.remove('active');
+                }
+            }
+            
+            async loadInitialState() {
+                try {
+                    const response = await fetch('/api/status');
+                    if (response.ok) {
+                        const data = await response.json();
+                        
+                        for (let i = 1; i <= 4; i++) {
+                            const state = data[`relay${i}`];
+                            if (typeof state === 'boolean') {
+                                this.updateRelayStatus(i, state);
+                            }
+                        }
+                        
+                        this.isConnected = true;
+                        this.updateConnectionStatus(true);
+                    } else {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+                } catch (error) {
+                    console.error('Error loading initial state:', error);
+                    this.handleConnectionError();
+                }
+            }
+            
+            startUpdates() {
+                this.updateInterval = setInterval(async () => {
+                    try {
+                        const response = await fetch('/api/status');
+                        if (response.ok) {
+                            const data = await response.json();
+                            
+                            for (let i = 1; i <= 4; i++) {
+                                const state = data[`relay${i}`];
+                                if (typeof state === 'boolean') {
+                                    const toggle = document.getElementById(`toggle${i}`);
+                                    const currentState = toggle.classList.contains('active');
+                                    if (currentState !== state) {
+                                        this.updateRelayStatus(i, state);
+                                    }
+                                }
+                            }
+                            
+                            this.isConnected = true;
+                            this.updateConnectionStatus(true);
+                        } else {
+                            throw new Error(`HTTP ${response.status}`);
+                        }
+                    } catch (error) {
+                        console.error('Error updating status:', error);
+                        this.handleConnectionError();
+                    }
+                }, 3000);
+            }
+            
+            handleConnectionError() {
+                this.isConnected = false;
+                this.updateConnectionStatus(false);
+            }
+            
+            updateConnectionStatus(connected) {
+                const dot = document.getElementById('connection-dot');
+                const text = document.getElementById('connection-text');
+                
+                if (connected) {
+                    dot.classList.remove('disconnected');
+                    text.textContent = 'Connected';
+                } else {
+                    dot.classList.add('disconnected');
+                    text.textContent = 'Disconnected';
+                }
+            }
+            
+            showLoading() {
+                document.getElementById('loading').classList.add('show');
+            }
+            
+            hideLoading() {
+                document.getElementById('loading').classList.remove('show');
+            }
+            
+            showToast(message, type = 'info') {
+                const toast = document.getElementById('toast');
+                toast.textContent = message;
+                toast.className = `toast ${type} show`;
+                
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                }, 3000);
+            }
+        }
+        
+        // Initialize mobile app
+        document.addEventListener('DOMContentLoaded', () => {
+            new MobileHomeControl();
+        });
+        
+        // Handle app installation
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            
+            // Show install button or banner
+            console.log('App can be installed');
+        });
+        
+        // Handle app installed
+        window.addEventListener('appinstalled', () => {
+            console.log('App was installed');
+        });
+    </script>
+</body>
+</html>
