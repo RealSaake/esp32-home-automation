@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESP32 Home Automation Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#667eea">
+    <meta name="description" content="ESP32 Home Automation Control Dashboard">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="header-content">
+                <h1>🏠 Home Automation Control</h1>
+                <div class="connection-info">
+                    <span id="connection-status" class="status-indicator">🟢 Connected</span>
+                    <span id="device-ip" class="device-info">IP: Loading...</span>
+                </div>
+            </div>
+        </header>
+        
+        <main class="main-content">
+            <!-- Quick Actions -->
+            <section class="quick-actions">
+                <h2>Quick Actions</h2>
+                <div class="action-buttons">
+                    <button id="all-on" class="btn btn-success btn-large">
+                        <span class="btn-icon">🔌</span>
+                        All ON
+                    </button>
+                    <button id="all-off" class="btn btn-danger btn-large">
+                        <span class="btn-icon">🔌</span>
+                        All OFF
+                    </button>
+                    <button id="refresh-status" class="btn btn-info">
+                        <span class="btn-icon">🔄</span>
+                        Refresh
+                    </button>
+                </div>
+            </section>
+            
+            <!-- Device Controls -->
+            <section class="device-controls">
+                <h2>Device Controls</h2>
+                <div class="relay-grid">
+                    <div class="relay-card" data-relay="1">
+                        <div class="relay-header">
+                            <h3>Living Room Light</h3>
+                            <div class="relay-indicator" id="indicator1"></div>
+                        </div>
+                        <div class="relay-control">
+                            <label class="switch">
+                                <input type="checkbox" id="relay1">
+                                <span class="slider"></span>
+                            </label>
+                            <span class="status" id="status1">OFF</span>
+                        </div>
+                        <div class="relay-info">
+                            <small>Last updated: <span id="lastUpdate1">Never</span></small>
+                        </div>
+                    </div>
+                    
+                    <div class="relay-card" data-relay="2">
+                        <div class="relay-header">
+                            <h3>Kitchen Light</h3>
+                            <div class="relay-indicator" id="indicator2"></div>
+                        </div>
+                        <div class="relay-control">
+                            <label class="switch">
+                                <input type="checkbox" id="relay2">
+                                <span class="slider"></span>
+                            </label>
+                            <span class="status" id="status2">OFF</span>
+                        </div>
+                        <div class="relay-info">
+                            <small>Last updated: <span id="lastUpdate2">Never</span></small>
+                        </div>
+                    </div>
+                    
+                    <div class="relay-card" data-relay="3">
+                        <div class="relay-header">
+                            <h3>Bedroom Light</h3>
+                            <div class="relay-indicator" id="indicator3"></div>
+                        </div>
+                        <div class="relay-control">
+                            <label class="switch">
+                                <input type="checkbox" id="relay3">
+                                <span class="slider"></span>
+                            </label>
+                            <span class="status" id="status3">OFF</span>
+                        </div>
+                        <div class="relay-info">
+                            <small>Last updated: <span id="lastUpdate3">Never</span></small>
+                        </div>
+                    </div>
+                    
+                    <div class="relay-card" data-relay="4">
+                        <div class="relay-header">
+                            <h3>Garage Door</h3>
+                            <div class="relay-indicator" id="indicator4"></div>
+                        </div>
+                        <div class="relay-control">
+                            <label class="switch">
+                                <input type="checkbox" id="relay4">
+                                <span class="slider"></span>
+                            </label>
+                            <span class="status" id="status4">OFF</span>
+                        </div>
+                        <div class="relay-info">
+                            <small>Last updated: <span id="lastUpdate4">Never</span></small>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- System Status -->
+            <section class="system-status">
+                <h2>System Status</h2>
+                <div class="status-grid">
+                    <div class="status-card">
+                        <h4>WiFi Signal</h4>
+                        <div class="signal-strength" id="wifi-signal">
+                            <div class="signal-bar"></div>
+                            <div class="signal-bar"></div>
+                            <div class="signal-bar"></div>
+                            <div class="signal-bar"></div>
+                        </div>
+                    </div>
+                    <div class="status-card">
+                        <h4>Uptime</h4>
+                        <div class="uptime" id="uptime">Loading...</div>
+                    </div>
+                    <div class="status-card">
+                        <h4>Memory</h4>
+                        <div class="memory-usage" id="memory-usage">Loading...</div>
+                    </div>
+                </div>
+            </section>
+        </main>
+        
+        <footer class="footer">
+            <p>ESP32 Home Automation System | Real-time Control Dashboard</p>
+            <p>Built with ❤️ for Smart Home Control</p>
+        </footer>
+    </div>
+    
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="loading-spinner"></div>
+        <p>Connecting to device...</p>
+    </div>
+    
+    <!-- Toast Notifications -->
+    <div id="toast-container" class="toast-container"></div>
+    
+    <script src="script.js"></script>
+</body>
+</html>
